@@ -11,6 +11,7 @@ import org.unbescape.html.HtmlEscape;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
@@ -73,7 +74,7 @@ public class SlackSender implements HttpHandler {
         if (text == null)
             return;
         else {
-            text = HtmlEscape.unescapeHtml(text);
+            text = HtmlEscape.unescapeHtml(URLDecoder.decode(text, "UTF-8"));
         }
 
         exchange.sendResponseHeaders(200, 0);

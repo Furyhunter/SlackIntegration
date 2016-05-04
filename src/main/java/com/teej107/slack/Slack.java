@@ -150,6 +150,7 @@ public class Slack extends JavaPlugin {
         getConfig().set(SLACK_TO_SERVER_FORMAT, s);
     }
 
+    @SuppressWarnings("unchecked")
     public void sendToSlack(CommandSender sender, String text) {
         JSONObject json = new JSONObject();
         json.put("text", ChatColor.stripColor(text));

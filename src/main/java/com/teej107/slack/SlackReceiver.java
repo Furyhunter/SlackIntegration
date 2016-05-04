@@ -18,7 +18,7 @@ public class SlackReceiver implements Runnable {
     public SlackReceiver(URL url) throws IOException {
         this.url = url;
         service = Executors.newSingleThreadExecutor();
-        queue = new ConcurrentLinkedQueue<>();
+        queue = new ConcurrentLinkedQueue<String>();
     }
 
     public void send(String s) {

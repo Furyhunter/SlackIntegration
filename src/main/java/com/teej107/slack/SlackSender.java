@@ -55,7 +55,7 @@ public class SlackSender implements HttpHandler {
         byte[] bytes = ByteStreams.toByteArray(exchange.getRequestBody());
         String fromBytes = new String(bytes, "UTF-8");
         String[] contents = fromBytes.split(Pattern.quote("&"));
-        HashMap<String, String> map = new HashMap<>();
+        HashMap<String, String> map = new HashMap<String, String>();
         for (String s : contents) {
             String[] array = s.split(Pattern.quote("="));
             if (array.length == 2) {

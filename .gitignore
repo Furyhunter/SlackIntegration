@@ -4,7 +4,7 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
+#*.jar
 *.war
 *.ear
 
@@ -68,3 +68,6 @@ target/
 *.name
 .idea
 *.iml
+
+.gradle
+build

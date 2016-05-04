@@ -1,6 +1,6 @@
 name: SlackIntegration
 main: com.teej107.slack.Slack
-version: ${project.version}
+version: @project.version@
 
 commands:
   slack:

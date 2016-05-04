@@ -1,6 +1,5 @@
 package slackintegration
 
-import com.teej107.slack.Slack
 import org.bukkit.ChatColor
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -75,22 +74,22 @@ class SlackCommand(val plugin: Slack) : CommandExecutor {
                 if (args.size >= 2) {
                     val b = args[1].toBoolean()
                     with(plugin) {
-                        isSendDeaths = b
+                        sendDeaths = b
                         saveConfig()
                     }
                 }
-                sender.sendMessage("Deaths: ${plugin.isSendDeaths}")
+                sender.sendMessage("Deaths: ${plugin.sendDeaths}")
                 return true
             }
             "achievements" -> {
                 if (args.size >= 2) {
                     val b = args[1].toBoolean()
                     with(plugin) {
-                        isSendAchievements = b
+                        sendAchievements = b
                         saveConfig()
                     }
                 }
-                sender.sendMessage("Achievements: ${plugin.isSendAchievements}")
+                sender.sendMessage("Achievements: ${plugin.sendAchievements}")
                 return true
             }
         }

@@ -12,7 +12,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 class ServerActivityListener(val plugin: Slack) : Listener {
     companion object {
         fun normalizeName(name: String): String {
-            return name.split("_").map {it.capitalize()}.joinToString(" ")
+            return name.split("_").map {it.toLowerCase().capitalize()}.joinToString(" ")
         }
     }
 
@@ -36,7 +36,7 @@ class ServerActivityListener(val plugin: Slack) : Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onAchievementGet(event: PlayerAchievementAwardedEvent) {
         if (plugin.sendAchievements) {
-            plugin.sendNotification("*${event.player.name}* earned the achievement *${normalizeName(event.achievement.toString())}*")
+            plugin.sendNotification("*${event.player.name}* earned the achievement _${normalizeName(event.achievement.toString())}_")
         }
     }
 }

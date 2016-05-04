@@ -21,7 +21,7 @@ class SlackHTTPD(val plugin: Slack, val token: String, val port: Int) : NanoHTTP
         val formMap: Map<String, String> = with(mutableMapOf<String, String>()) {
             for (p in formParameters) {
                 val s = p.split("=")
-                if (s.size == 2) put(s[0], s[1])
+                if (s.size == 2) put(s[0], URLDecoder.decode(s[1], "UTF-8"))
             }
             this
         }
@@ -33,11 +33,8 @@ class SlackHTTPD(val plugin: Slack, val token: String, val port: Int) : NanoHTTP
         if (rToken != token) {
             return errorResponse("Invalid token")
         }
-        if (username == "slackbot") {
+        if (username == "slackbot" || username == null) {
             // short circuit, we don't need to do anything with messages from slackbot
-            return emptyResponse
-        }
-        if (username == null) {
             return emptyResponse
         }
 
@@ -45,17 +42,17 @@ class SlackHTTPD(val plugin: Slack, val token: String, val port: Int) : NanoHTTP
             return emptyResponse
         }
 
-        val escapedText = HtmlEscape.unescapeHtml(URLDecoder.decode(text, "UTF-8"))
-        val fromSlackText = plugin.slackToServerFormat.format(username, escapedText)
         // val formattedText = ???
 
-        val task = object : BukkitRunnable() {
-            override fun run() {
-                Bukkit.broadcastMessage(fromSlackText)
+        val inc = IncomingMessage.formToMessage(formMap)
+        if (inc != null) {
+            val task = object : BukkitRunnable() {
+                override fun run() {
+                    plugin.handleIncomingMessage(inc)
+                }
             }
+            task.runTask(plugin)
         }
-
-        task.runTask(plugin)
 
         return emptyResponse
     }

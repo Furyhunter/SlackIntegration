@@ -2,11 +2,14 @@ package slackintegration
 
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
+import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.plugin.java.JavaPlugin
+import org.unbescape.html.HtmlEscape
 import java.io.IOException
 import java.net.URL
+import java.net.URLDecoder
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -114,6 +117,50 @@ class Slack : JavaPlugin() {
             val msg = EventMessage(text, c)
             val task = PostTask(URL(webhookUrl), msg)
             outExecutor?.submit(task)
+        }
+    }
+
+    fun handleIncomingMessage(m: IncomingMessage) {
+        when (m) {
+            is ChatMessage -> {
+                val escapedText = HtmlEscape.unescapeHtml(URLDecoder.decode(m.text, "UTF-8"))
+                val fromSlackText = slackToServerFormat.format(m.username, escapedText)
+                Bukkit.broadcastMessage(fromSlackText)
+            }
+            is CommandMessage -> {
+                when (m.subcmd) {
+                    "whitelist" -> {
+                        handleWhitelistCommand(m)
+                    }
+                    "test" -> {
+                        outExecutor?.submit(PostTask(m.responseUrl, MapMessage(mapOf(
+                                "text" to "Hello world!"
+                        ))))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handleWhitelistCommand(m: CommandMessage) {
+        // TODO replace with explicit UUID retrieval
+        val op: OfflinePlayer? = Bukkit.getOfflinePlayer(m.subText)
+        if (op == null) {
+            outExecutor?.submit(PostTask(m.responseUrl, MapMessage(mapOf(
+                    "text" to "The username \"${m.subText}\" does not exist."
+            ))))
+            return
+        }
+        val wl = op.isWhitelisted
+        if (!wl) {
+            op.isWhitelisted = true
+            outExecutor?.submit(PostTask(m.responseUrl, MapMessage(mapOf(
+                    "text" to "The Minecraft user \"${op.player.name}\" has been whitelisted."
+            ))))
+        } else {
+            outExecutor?.submit(PostTask(m.responseUrl, MapMessage(mapOf(
+                    "text" to "The username \"${op.player.name}\" was already whitelisted."
+            ))))
         }
     }
 }

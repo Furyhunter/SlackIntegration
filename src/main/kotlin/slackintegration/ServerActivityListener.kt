@@ -18,25 +18,25 @@ class ServerActivityListener(val plugin: Slack) : Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onJoin(event: PlayerJoinEvent) {
-        plugin.sendNotificationToSlack("*${event.player.name}* joined the game.")
+        plugin.sendNotification("*${event.player.name}* joined the game.")
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onQuit(event: PlayerQuitEvent) {
-        plugin.sendNotificationToSlack("*${event.player.name}* left the game.")
+        plugin.sendNotification("*${event.player.name}* left the game.")
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onDeath(event: PlayerDeathEvent) {
         if (plugin.sendDeaths) {
-            plugin.sendNotificationToSlack(event.deathMessage)
+            plugin.sendNotification(event.deathMessage)
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onAchievementGet(event: PlayerAchievementAwardedEvent) {
         if (plugin.sendAchievements) {
-            plugin.sendNotificationToSlack("*${event.player.name}* earned the achievement *${normalizeName(event.achievement.toString())}*")
+            plugin.sendNotification("*${event.player.name}* earned the achievement *${normalizeName(event.achievement.toString())}*")
         }
     }
 }

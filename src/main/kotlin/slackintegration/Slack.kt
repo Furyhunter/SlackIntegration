@@ -1,20 +1,21 @@
 package slackintegration
 
-import com.teej107.slack.SlackReceiver
-import com.teej107.slack.SlackSender
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.plugin.java.JavaPlugin
-import org.json.simple.JSONObject
 import java.io.IOException
 import java.net.URL
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class Slack : JavaPlugin() {
     private var _enabled: Boolean = false
-    private var slackSender: SlackSender? = null
-    private var slackReceiver: SlackReceiver? = null
+
+    private var slackHttpd: SlackHTTPD? = null
+
+    var outExecutor: ExecutorService? = Executors.newSingleThreadExecutor()
 
     private fun FileConfiguration.setSlackPluginDefaults() {
         addDefault("webhook-url", "no-url")
@@ -29,30 +30,27 @@ class Slack : JavaPlugin() {
     }
 
     private fun load() {
-        slackSender?.setEnabled(false)
+        slackHttpd?.stop()
+        outExecutor?.shutdown()
+
         if (webhookUrl == "no-url") {
             logger.severe("No URL specified! Go to the config and specify one, then run '/slack reload'")
             return
         }
+
+        outExecutor = Executors.newSingleThreadExecutor()
+
         try {
-            slackReceiver = SlackReceiver(URL(webhookUrl))
+            slackHttpd = SlackHTTPD(this, token, port)
+            slackHttpd?.start()
         } catch (e: IOException) {
-            logger.severe("Unable to initialize slack receiver, disabling plugin\n${e.toString()}")
-            Bukkit.getPluginManager().disablePlugin(this)
-            return
-        }
-        try {
-            slackSender = SlackSender(this, port, token, slackToServerFormat)
-            slackSender?.setEnabled(true)
-        } catch (e: IOException) {
-            logger.severe("Unable to initialize slack sender, disabling plugin\n${e.toString()}")
-            Bukkit.getPluginManager().disablePlugin(this)
+            logger.severe("Unable to initialize slack receiver http server\n${e.toString()}")
             return
         }
     }
 
     override fun onEnable() {
-        getConfig().setSlackPluginDefaults()
+        config.setSlackPluginDefaults()
         load()
 
         val pm = Bukkit.getPluginManager()
@@ -64,6 +62,8 @@ class Slack : JavaPlugin() {
 
     override fun onDisable() {
         _enabled = false
+        slackHttpd?.stop()
+        outExecutor?.shutdown()
     }
 
     override fun reloadConfig() {
@@ -101,28 +101,19 @@ class Slack : JavaPlugin() {
         get() = config.getString("slack-to-server-format")
         set(value) = config.set("slack-to-server-format", value)
 
-    fun sendToSlack(sender: CommandSender, text: String) {
-        val json = JSONObject()
-        with(json) {
-            put("text", ChatColor.stripColor(text))
-            put("username", sender.name)
-            put("icon_url", "https://minotar.net/avatar/${sender.name}.png")
-        }
+    fun sendUserChat(sender: CommandSender, text: String) {
         for (c in channels) {
-            json.put("channel", c)
-            slackReceiver?.send(json.toJSONString())
+            val msg = UserChatMessage(sender.name, ChatColor.stripColor(text), c)
+            val task = PostTask(URL(webhookUrl), msg)
+            outExecutor?.submit(task)
         }
     }
 
-    fun sendNotificationToSlack(text: String) {
-        val json = JSONObject()
-        with(json) {
-            put("text", text)
-            put("username", "[Server]")
-        }
+    fun sendNotification(text: String) {
         for (c in channels) {
-            json.put("channel", c)
-            slackReceiver?.send(json.toJSONString())
+            val msg = EventMessage(text, c)
+            val task = PostTask(URL(webhookUrl), msg)
+            outExecutor?.submit(task)
         }
     }
 }

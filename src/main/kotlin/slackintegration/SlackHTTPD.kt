@@ -2,13 +2,11 @@ package slackintegration
 
 import com.google.common.io.ByteStreams
 import fi.iki.elonen.NanoHTTPD
-import org.bukkit.Bukkit
 import org.bukkit.scheduler.BukkitRunnable
-import org.unbescape.html.HtmlEscape
 import java.net.URLDecoder
 import java.nio.charset.Charset
 
-class SlackHTTPD(val plugin: Slack, val token: String, val port: Int) : NanoHTTPD(port) {
+class SlackHTTPD(val plugin: Slack, val tokens: List<String>, val port: Int) : NanoHTTPD(port) {
     override fun serve(session: IHTTPSession?): Response? {
         if (session == null) return null
 
@@ -30,9 +28,10 @@ class SlackHTTPD(val plugin: Slack, val token: String, val port: Int) : NanoHTTP
         val username = formMap.get("user_name")
         val text = formMap.get("text")
 
-        if (rToken != token) {
+        if (rToken !in tokens) {
             return errorResponse("Invalid token")
         }
+
         if (username == "slackbot" || username == null) {
             // short circuit, we don't need to do anything with messages from slackbot
             return emptyResponse

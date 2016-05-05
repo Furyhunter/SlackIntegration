@@ -14,6 +14,17 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class Slack : JavaPlugin() {
+    companion object {
+        const val OUTGOING_WEBHOOK_URL = "outgoing-webhook-url"
+        const val PORT = "port"
+        const val INCOMING_TOKENS = "incoming-tokens"
+        const val CHANNELS = "channels"
+        const val SLACK_TO_SERVER_FORMAT = "slack-to-server-format"
+        const val SEND_ACHIEVEMENTS = "send-achievements"
+        const val SEND_DEATHS = "send-deaths"
+        const val ALLOW_WHITELIST_COMMAND = "allow-whitelist-command"
+    }
+
     private var _enabled: Boolean = false
 
     private var slackHttpd: SlackHTTPD? = null
@@ -21,13 +32,14 @@ class Slack : JavaPlugin() {
     var outExecutor: ExecutorService? = Executors.newSingleThreadExecutor()
 
     private fun FileConfiguration.setSlackPluginDefaults() {
-        addDefault("webhook-url", "no-url")
-        addDefault("port", 25107)
-        addDefault("token", "TOKENMISSING")
-        addDefault("channels", emptyList<String>())
-        addDefault("slack-to-server-format", "(%s) %s")
-        addDefault("send-achievements", true)
-        addDefault("send-deaths", true)
+        addDefault(OUTGOING_WEBHOOK_URL, "no-url")
+        addDefault(PORT, 25107)
+        addDefault(INCOMING_TOKENS, listOf("TOKEN1", "TOKEN2"))
+        addDefault(CHANNELS, emptyList<String>())
+        addDefault(SLACK_TO_SERVER_FORMAT, "(%s) %s")
+        addDefault(SEND_ACHIEVEMENTS, true)
+        addDefault(SEND_DEATHS, true)
+        addDefault(ALLOW_WHITELIST_COMMAND, true)
         options().copyDefaults(true)
         saveConfig()
     }
@@ -44,7 +56,7 @@ class Slack : JavaPlugin() {
         outExecutor = Executors.newSingleThreadExecutor()
 
         try {
-            slackHttpd = SlackHTTPD(this, token, port)
+            slackHttpd = SlackHTTPD(this, tokens, port)
             slackHttpd?.start()
         } catch (e: IOException) {
             logger.severe("Unable to initialize slack receiver http server\n${e.toString()}")
@@ -77,32 +89,36 @@ class Slack : JavaPlugin() {
     }
 
     var sendAchievements: Boolean
-        get() = config.getBoolean("send-achievements")
-        set(value) = config.set("send-achievements", value)
+        get() = config.getBoolean(SEND_ACHIEVEMENTS)
+        set(value) = config.set(SEND_ACHIEVEMENTS, value)
 
     var sendDeaths: Boolean
-        get() = config.getBoolean("send-deaths")
-        set(value) = config.set("send-deaths", value)
+        get() = config.getBoolean(SEND_DEATHS)
+        set(value) = config.set(SEND_DEATHS, value)
 
     var webhookUrl: String
-        get() = config.getString("webhook-url")
-        set(value) = config.set("webhook-url", value)
+        get() = config.getString(OUTGOING_WEBHOOK_URL)
+        set(value) = config.set(OUTGOING_WEBHOOK_URL, value)
 
     var channels: List<String>
-        get() = config.getStringList("channels")
-        set(value) = config.set("channels", value)
+        get() = config.getStringList(CHANNELS)
+        set(value) = config.set(CHANNELS, value)
 
     var port: Int
-        get() = config.getInt("port")
-        set(value) = config.set("port", value)
+        get() = config.getInt(PORT)
+        set(value) = config.set(PORT, value)
 
-    var token: String
-        get() = config.getString("token")
-        set(value) = config.set("token", value)
+    var tokens: List<String>
+        get() = config.getStringList(INCOMING_TOKENS)
+        set(value) = config.set(INCOMING_TOKENS, value)
 
     var slackToServerFormat: String
-        get() = config.getString("slack-to-server-format")
-        set(value) = config.set("slack-to-server-format", value)
+        get() = config.getString(SLACK_TO_SERVER_FORMAT)
+        set(value) = config.set(SLACK_TO_SERVER_FORMAT, value)
+
+    var allowWhitelistCommand: Boolean
+        get() = config.getBoolean(ALLOW_WHITELIST_COMMAND)
+        set(value) = config.set(ALLOW_WHITELIST_COMMAND, value)
 
     fun sendUserChat(sender: CommandSender, text: String) {
         for (c in channels) {
@@ -142,7 +158,14 @@ class Slack : JavaPlugin() {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun handleWhitelistCommand(m: CommandMessage) {
+        if (!allowWhitelistCommand) {
+            outExecutor?.submit(PostTask(m.responseUrl, MapMessage(mapOf(
+                    "text" to "Whitelisting from Slack is disabled. Please contact a server administrator."
+            ))))
+            return
+        }
         // TODO replace with explicit UUID retrieval
         val op: OfflinePlayer? = Bukkit.getOfflinePlayer(m.subText)
         if (op == null) {

@@ -10,6 +10,7 @@ import org.unbescape.html.HtmlEscape
 import java.io.IOException
 import java.net.URL
 import java.net.URLDecoder
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -148,7 +149,15 @@ class Slack : JavaPlugin() {
                     "whitelist" -> {
                         handleWhitelistCommand(m)
                     }
-                    "test" -> {
+                    "players" -> {
+                        val playerNames = ArrayList(Bukkit.getServer().onlinePlayers).map {"*${it.displayName}*"}
+                        val playerNameString = playerNames.joinToString(", ")
+                        val msg = "There are ${playerNames.size} players online. Names: $playerNameString"
+                        outExecutor?.submit(PostTask(m.responseUrl, MapMessage(mapOf(
+                                "text" to msg
+                        ))))
+                    }
+                    "hello" -> {
                         outExecutor?.submit(PostTask(m.responseUrl, MapMessage(mapOf(
                                 "text" to "Hello world!"
                         ))))
@@ -166,6 +175,7 @@ class Slack : JavaPlugin() {
             ))))
             return
         }
+
         // TODO replace with explicit UUID retrieval
         val op: OfflinePlayer? = Bukkit.getOfflinePlayer(m.subText)
         if (op == null) {

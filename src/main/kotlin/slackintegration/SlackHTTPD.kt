@@ -41,12 +41,12 @@ class SlackHTTPD(val plugin: Slack) : NanoHTTPD(plugin.port) {
         if (username == "slackbot" || username.isNullOrEmpty()) {
             // short circuit, we don't need to do anything with messages from slackbot
             plugin.logger.info("Ignoring message from slackbot or empty username")
-            return emptyResponse
+            return emptyResponse()
         }
 
         if (text.isNullOrEmpty()) {
             plugin.logger.info("Ignoring empty text")
-            return emptyResponse
+            return emptyResponse()
         }
 
         // val formattedText = ???
@@ -59,9 +59,9 @@ class SlackHTTPD(val plugin: Slack) : NanoHTTPD(plugin.port) {
         }
         task.runTask(plugin)
 
-        return emptyResponse
+        return emptyResponse()
     }
 
-    val emptyResponse = newFixedLengthResponse(Response.Status.OK, "text/javascript", "{}")
+    fun emptyResponse() = newFixedLengthResponse(Response.Status.OK, "text/javascript", "{}")
     fun errorResponse(text: String) = newFixedLengthResponse(Response.Status.FORBIDDEN, "text/html", text)
 }

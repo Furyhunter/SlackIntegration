@@ -47,6 +47,7 @@ class SlackHTTPD(val plugin: Slack) : NanoHTTPD(plugin.port) {
         return emptyResponse()
     }
 
-    fun emptyResponse() = newFixedLengthResponse(Response.Status.OK, "application/json", "{}")
+    fun emptyResponse() = newFixedLengthResponse(Response.Status.OK, MIME_PLAINTEXT, "")
+    fun emptyJsonObjectResponse() = newFixedLengthResponse(Response.Status.OK, "application/json", "{}")
     fun errorResponse(text: String) = newFixedLengthResponse(Response.Status.FORBIDDEN, "text/html", text)
 }

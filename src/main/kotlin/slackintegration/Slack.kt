@@ -57,7 +57,7 @@ class Slack : JavaPlugin() {
         outExecutor = Executors.newSingleThreadExecutor()
 
         try {
-            slackHttpd = SlackHTTPD(this)
+            slackHttpd = SlackHTTPD(this, tokens, port)
             slackHttpd?.start()
         } catch (e: IOException) {
             logger.severe("Unable to initialize slack receiver http server\n${e.toString()}")
@@ -163,10 +163,6 @@ class Slack : JavaPlugin() {
                         ))))
                     }
                 }
-            }
-            is UnknownMessage -> {
-                logger.severe("Unknown slack message received: $m")
-                Bukkit.broadcastMessage("(slack) I received an unknown message; please check the server log for info")
             }
         }
     }

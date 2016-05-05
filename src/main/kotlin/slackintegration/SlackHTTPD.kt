@@ -1,26 +1,13 @@
 package slackintegration
 
-import com.google.common.io.ByteStreams
 import fi.iki.elonen.NanoHTTPD
 import org.bukkit.scheduler.BukkitRunnable
-import java.net.URLDecoder
-import java.nio.charset.Charset
 
 class SlackHTTPD(val plugin: Slack) : NanoHTTPD(plugin.port) {
-    companion object {
-        fun formStringToMap(form: String): Map<String, String> {
-            val formParameters = form.split("&")
-            val formMap: Map<String, String> = with(mutableMapOf<String, String>()) {
-                for (p in formParameters) {
-                    val s = p.split("=").map{it.trim()}
-                    if (s.size == 2) put(s[0], URLDecoder.decode(s[1], "UTF-8"))
-                }
-                this
-            }
-            return formMap
-        }
-    }
+
     override fun serve(session: IHTTPSession?): Response? {
+        super.serve(session)
+
         if (session == null) return null
 
         if (session.method != Method.POST) {
@@ -34,18 +21,16 @@ class SlackHTTPD(val plugin: Slack) : NanoHTTPD(plugin.port) {
         val text = formMap["text"]
 
         if (rToken !in plugin.tokens) {
-            plugin.logger.warning("Incoming tried to use token $rToken but it was invalid")
+            plugin.logger.warning("Incoming tried to use token $rToken but it was invalid;\n\nrequest form map is $formMap")
             return errorResponse("Invalid token")
         }
 
         if (username == "slackbot" || username.isNullOrEmpty()) {
             // short circuit, we don't need to do anything with messages from slackbot
-            plugin.logger.info("Ignoring message from slackbot or empty username")
             return emptyResponse()
         }
 
         if (text.isNullOrEmpty()) {
-            plugin.logger.info("Ignoring empty text")
             return emptyResponse()
         }
 
@@ -62,6 +47,6 @@ class SlackHTTPD(val plugin: Slack) : NanoHTTPD(plugin.port) {
         return emptyResponse()
     }
 
-    fun emptyResponse() = newFixedLengthResponse(Response.Status.OK, "text/javascript", "{}")
+    fun emptyResponse() = newFixedLengthResponse(Response.Status.OK, "application/json", "{}")
     fun errorResponse(text: String) = newFixedLengthResponse(Response.Status.FORBIDDEN, "text/html", text)
 }

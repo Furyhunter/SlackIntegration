@@ -4,7 +4,7 @@ import java.net.URL
 
 interface IncomingMessage {
     companion object {
-        fun formToMessage(form: Map<String, String>): IncomingMessage? {
+        fun formToMessage(form: Map<String, String>): IncomingMessage {
             if (form["command"] == "/mc") {
                 val args = form["text"]?.split(" ")
                 val urlText = form["response_url"]
@@ -20,10 +20,11 @@ interface IncomingMessage {
                     return ChatMessage(username, text)
             }
 
-            return null
+            return UnknownMessage(form)
         }
     }
 }
 
 data class ChatMessage(val username: String, val text: String) : IncomingMessage
 data class CommandMessage(val username: String, val subcmd: String, val subText: String, val responseUrl: URL) : IncomingMessage
+data class UnknownMessage(val form: Map<String, String>) : IncomingMessage

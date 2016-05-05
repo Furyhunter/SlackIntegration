@@ -24,6 +24,6 @@ class IncomingMessageTest {
 
         val map3 = emptyMap<String, String>()
         val msg3 = IncomingMessage.formToMessage(map3)
-        assertEquals(null, msg3)
+        assertEquals(UnknownMessage(emptyMap()), msg3)
     }
 }

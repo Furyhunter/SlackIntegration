@@ -4,6 +4,7 @@ import java.io.DataOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 
 class PostTask(val url: URL, val msg: OutgoingMessage) : Runnable {
     override fun run() {
@@ -14,11 +15,12 @@ class PostTask(val url: URL, val msg: OutgoingMessage) : Runnable {
             connection.useCaches = false
             connection.doInput = true
             connection.doOutput = true
-            connection.addRequestProperty("content-type", "application/json")
+
+            val payload = "payload=" + URLEncoder.encode(msg.payload, "UTF-8")
 
             val wr = DataOutputStream(
                     connection.outputStream)
-            wr.writeUTF(msg.payload)
+            wr.writeBytes(payload)
             wr.flush()
             wr.close()
 

@@ -9,12 +9,12 @@ interface IncomingMessage {
                 val args = form["text"]?.split(" ")
                 val urlText = form["response_url"]
                 val url = if (urlText == null) null else URL(urlText)
-                val username = form["username"]
+                val username = form["user_name"]
 
                 if (args != null && username != null && url != null)
                     return CommandMessage(username, args[0], args.subList(1, args.size).joinToString(" "), url)
             } else {
-                val username = form["username"]
+                val username = form["user_name"]
                 val text = form["text"]
                 if (username != null && text != null)
                     return ChatMessage(username, text)

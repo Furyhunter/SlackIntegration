@@ -27,8 +27,7 @@ class SlackHTTPD(val plugin: Slack) : NanoHTTPD(plugin.port) {
             return errorResponse("Invalid method")
         }
 
-        val body = String(ByteStreams.toByteArray(session.inputStream), Charset.forName("UTF-8"))
-        val formMap = formStringToMap(body)
+        val formMap = session.parms
 
         val rToken = formMap["token"]
         val username = formMap["user_name"]

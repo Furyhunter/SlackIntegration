@@ -34,6 +34,7 @@ class SlackHTTPD(val plugin: Slack) : NanoHTTPD(plugin.port) {
         val text = formMap["text"]
 
         if (rToken !in plugin.tokens) {
+            plugin.logger.warning("Incoming tried to use token $rToken but it was invalid")
             return errorResponse("Invalid token")
         }
 

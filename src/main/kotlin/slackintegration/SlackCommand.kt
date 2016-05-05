@@ -39,14 +39,6 @@ class SlackCommand(val plugin: Slack) : CommandExecutor {
                 sender.sendMessage("Webhook URL: ${plugin.webhookUrl}")
                 return true
             }
-            "token" -> {
-                if (args.size >= 2) with(plugin) {
-                    token = args[1]
-                    saveConfig()
-                }
-                sender.sendMessage("Token: ${plugin.token}")
-                return true
-            }
             "add", "remove" -> {
                 sender.sendMessage("This command is unimplemented in the Kotlin port")
                 return true

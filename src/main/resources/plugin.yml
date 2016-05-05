@@ -9,7 +9,6 @@ commands:
     usage: |
       /slack url [url]
       /slack port [port]
-      /slack token [token]
       /slack add <channel>
       /slack remove <channel>
       /slack channels

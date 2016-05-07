@@ -192,11 +192,11 @@ class Slack : JavaPlugin() {
         if (!wl) {
             op.isWhitelisted = true
             outExecutor?.submit(PostTask(m.responseUrl, MapMessage(mapOf(
-                    "text" to "The Minecraft user \"${op.player.name}\" has been whitelisted."
+                    "text" to "The Minecraft user \"${op.name}\" has been whitelisted."
             ))))
         } else {
             outExecutor?.submit(PostTask(m.responseUrl, MapMessage(mapOf(
-                    "text" to "The username \"${op.player.name}\" was already whitelisted."
+                    "text" to "The username \"${op.name}\" was already whitelisted."
             ))))
         }
     }
